@@ -1,0 +1,12 @@
+fastapi==0.135.1
+uvicorn[standard]==0.42.0
+pydantic==2.12.5
+pydantic-settings==2.13.1
+httpx==0.28.1
+PyJWT==2.12.1
+fastapi-code-generator==0.8.1
+pyyaml==6.0.3
+pytest==9.1.1
+deepdiff==9.1.0
+openapi-python-client==0.29.0
+debugpy==1.8.20

@@ -1,0 +1,430 @@
+openapi: "3.0.3"
+
+info:
+  title: API магазина
+  version: "1.0"
+  description: API магазина
+  contact:
+    name: Поддержка
+    email: support@example.com
+
+servers:
+  - url: http://localhost/api/1.0
+    description: Тестовый сервер
+
+security:
+  - CookieAccessToken: []
+
+tags:
+  - name: Session
+    description: Сессия
+  - name: Order
+    description: Заказ
+
+paths:
+  /sessions:
+    post:
+      operationId: sessionCreate
+      description: Создание сессии
+      tags: [Session]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionCreate"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: Содержит accessToken и refreshToken (для пути refreshedSessions)
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    get:
+      operationId: sessionList
+      description: Список сессий
+      tags: [Session]
+      parameters:
+        - in: query
+          name: language
+          description: Язык
+          schema:
+            $ref: "#/components/schemas/Language"
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionListResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /sessions/{sessionId}:
+    delete:
+      operationId: sessionDelete
+      description: Удаление сессии
+      tags: [Session]
+      parameters:
+        - in: path
+          name: sessionId
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Empty"
+      responses:
+        "204":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /refreshedSessions:
+    post:
+      operationId: sessionRefresh
+      description: Обновление сессии
+      tags: [Session]
+      security:
+        - CookieRefreshToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Empty"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: Содержит accessToken и refreshToken (для пути refreshedSessions)
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /orders:
+    post:
+      operationId: orderCreate
+      description: Создание заказа
+      tags: [Order]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreateRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/OrderResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    get:
+      operationId: orderList
+      description: Список заказов
+      tags: [Order]
+      parameters:
+        - in: query
+          name: language
+          description: Язык
+          schema:
+            $ref: "#/components/schemas/Language"
+        - in: query
+          name: limit
+          description: Макс. кол-во эл-тов в выборке
+          schema:
+            type: integer
+            minimum: 1
+            default: 100
+        - in: query
+          name: cursor
+          description: Берем из ответа для того, чтобы получить продолжение выборки, в запросе начинающем выборку не укзазывается
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+        - in: query
+          name: orderId
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/OrderListResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        description: Идентификатор заказа
+        required: true
+        schema:
+          type: string
+    patch:
+      operationId: orderUpdate
+      description: Редактирование заказа
+      tags: [Order]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdateRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/OrderResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      operationId: orderDelete
+      description: Удаление заказа
+      tags: [Order]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Empty"
+      responses:
+        "204":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+components:
+  securitySchemes:
+    CookieAccessToken:
+      type: apiKey
+      in: cookie
+      name: accessToken
+    CookieRefreshToken:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+
+  schemas:
+    Language:
+      type: string
+      enum: [en, ru]
+      default: en
+    Empty:
+      type: object
+      properties:
+        language:
+          $ref: "#/components/schemas/Language"
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            required: [id, code, message]
+            properties:
+              id:
+                type: string
+              code:
+                type: string
+              message:
+                type: string
+              value:
+                type: string
+              expected:
+                type: string
+    SessionCreate:
+      type: object
+      required: [user, password]
+      properties:
+        language:
+          $ref: "#/components/schemas/Language"
+        user:
+          type: string
+        password:
+          type: string
+    SessionList:
+      type: array
+      items:
+        type: object
+        required: [id, createdAt, info]
+        properties:
+          id:
+            type: string
+          createdAt:
+            type: string
+            format: date-time
+          info:
+            type: string
+    OrderStatus:
+      type: string
+      enum: [DRAFT, CONFIRMED, CANCELLED]
+    OrderItem:
+        type: object
+        required: [id, count]
+        properties:
+          id:
+            type: string
+          count:
+            type: integer
+            minimum: 1
+    OrderItems:
+      type: array
+      items:
+        $ref: "#/components/schemas/OrderItem"
+    OrderCreate:
+      type: object
+      required: [phone, deliveryAddress, items]
+      properties:
+        phone:
+          type: string
+        deliveryAddress:
+          type: string
+        items:
+          $ref: "#/components/schemas/OrderItems"
+    OrderUpdate:
+      type: object
+      required: [orderVer]
+      properties:
+        orderVer:
+          type: integer
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        phone:
+          type: string
+        deliveryAddress:
+          type: string
+        items:
+          $ref: "#/components/schemas/OrderItems"
+    Order:
+      type: object
+      required: [orderId, orderVer, status, createdAt, phone, deliveryAddress, items]
+      properties:
+        orderId:
+          type: string
+        orderVer:
+          type: integer
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        createdAt:
+          type: string
+          format: date-time
+        phone:
+          type: string
+        deliveryAddress:
+          type: string
+        items:
+          $ref: "#/components/schemas/OrderItems"
+    OrderCreateRequest:
+      type: object
+      required: [idempotencyKey, order]
+      properties:
+        language:
+          $ref: "#/components/schemas/Language"
+        idempotencyKey:
+          type: string
+        order:
+          $ref: "#/components/schemas/OrderCreate"
+    OrderUpdateRequest:
+      type: object
+      required: [idempotencyKey, order]
+      properties:
+        language:
+          $ref: "#/components/schemas/Language"
+        idempotencyKey:
+          type: string
+        order:
+          $ref: "#/components/schemas/OrderUpdate"
+    OrderList:
+      type: object
+      required: [items]
+      properties:
+        cursor:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+
+  responses:
+    ErrorResponse:
+      description: Ошибка
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    SessionListResponse:
+      description: Список сессий
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SessionList"
+    OrderResponse:
+      description: Заказ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Order"
+    OrderListResponse:
+      description: Список заказов
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OrderList"
